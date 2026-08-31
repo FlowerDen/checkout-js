@@ -1,9 +1,5 @@
 import { type AddressRequestBody, type SearchArea } from '@bigcommerce/checkout-sdk';
 
-type PickupProbeAddress = Omit<AddressRequestBody, 'phone'> & {
-    country: string;
-};
-
 export const flowerDenPickupConfig: {
     searchArea: SearchArea;
     probeAddress: AddressRequestBody & {
