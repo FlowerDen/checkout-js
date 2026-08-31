@@ -337,28 +337,41 @@ export const renderBopisDiagnostic = (diagnosticWindow: CustomCheckoutWindow): v
                     throw new Error('BigCommerce returned no native pickup method for this checkout and search area.');
                 }
 
-                const pickupSelection = {
-                    id: pickupConsignment.id,
+                const deletedAddressConsignment = await checkoutService.deleteConsignment(pickupConsignment.id);
+
+                transitions.push({
+                    name: 'deleteConsignment_before_pickup_create',
+                    request: { id: pickupConsignment.id },
+                    consignments: deletedAddressConsignment.data.getConsignments(),
+                });
+
+                const pickupSelection = [{
+                    address: deliveryAddress,
                     lineItems,
                     pickupOption: { pickupMethodId: pickupMethod.id },
-                };
-                const selected = await checkoutService.updateConsignment(pickupSelection);
+                }];
+                const selected = await checkoutService.createConsignments(pickupSelection);
+                const selectedPickupConsignment = selected.data.getConsignments()?.[0];
+
+                if (!selectedPickupConsignment) {
+                    throw new Error('No consignment was returned after pickup consignment creation.');
+                }
 
                 const selectedPickupOption = selected.data.getConsignmentById(
-                    pickupConsignment.id,
+                    selectedPickupConsignment.id,
                 )?.selectedPickupOption;
                 transitions.push({
-                    name: 'updateConsignment_pickupOption',
+                    name: 'createConsignments_with_pickupOption',
                     request: pickupSelection,
                     consignments: selected.data.getConsignments(),
                     selectedPickupOption,
                 });
 
-                const deleted = await checkoutService.deleteConsignment(pickupConsignment.id);
+                const deleted = await checkoutService.deleteConsignment(selectedPickupConsignment.id);
 
                 transitions.push({
                     name: 'deleteConsignment_pickup',
-                    request: { id: pickupConsignment.id },
+                    request: { id: selectedPickupConsignment.id },
                     consignments: deleted.data.getConsignments(),
                 });
 
