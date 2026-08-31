@@ -357,9 +357,7 @@ export const renderBopisDiagnostic = (diagnosticWindow: CustomCheckoutWindow): v
                     throw new Error('No consignment was returned after pickup consignment creation.');
                 }
 
-                const selectedPickupOption = selected.data.getConsignmentById(
-                    selectedPickupConsignment.id,
-                )?.selectedPickupOption;
+                const selectedPickupOption = selectedPickupConsignment.selectedPickupOption;
                 transitions.push({
                     name: 'createConsignments_with_pickupOption',
                     request: pickupSelection,
