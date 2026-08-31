@@ -4,6 +4,9 @@ import type { CustomCheckoutWindow } from './auto-loader';
 
 interface CapturedRequest {
     body?: unknown;
+    responseBody?: string;
+    responseJson?: unknown;
+    status?: number;
     method: string;
     url: string;
 }
@@ -57,6 +60,14 @@ const parseRequestBody = (body: unknown): unknown => {
         return JSON.parse(body);
     } catch {
         return body;
+    }
+};
+
+const getResponseBody = (xhr: XMLHttpRequest): string | undefined => {
+    try {
+        return xhr.responseText;
+    } catch {
+        return undefined;
     }
 };
 
@@ -120,11 +131,20 @@ const captureStorefrontRequests = (capturedRequests: CapturedRequest[]): (() => 
 
         send(body?: Document | XMLHttpRequestBodyInit | null): void {
             if (this.requestUrl.includes('/api/storefront/')) {
-                capturedRequests.push({
+                const capturedRequest: CapturedRequest = {
                     body: parseRequestBody(body),
                     method: this.requestMethod,
                     url: new URL(this.requestUrl, window.location.href).toString(),
+                };
+
+                this.addEventListener('loadend', () => {
+                    const responseBody = getResponseBody(this);
+
+                    capturedRequest.responseBody = responseBody;
+                    capturedRequest.responseJson = parseRequestBody(responseBody);
+                    capturedRequest.status = this.status;
                 });
+                capturedRequests.push(capturedRequest);
             }
 
             super.send(body);
