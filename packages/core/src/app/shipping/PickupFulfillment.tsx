@@ -21,7 +21,7 @@ interface PickupOptionState {
 
 export interface PickupFulfillmentProps {
     children: ReactNode;
-    onPickupContinue(): void;
+    onPickupContinue(pickupName: string, pickupPhone: string): void;
     onUnhandledError(error: Error): void;
 }
 
@@ -49,6 +49,8 @@ const PickupFulfillment: React.FC<PickupFulfillmentProps> = ({
         useState<FulfillmentMethod>('delivery');
     const [isUpdating, setIsUpdating] = useState(false);
     const [pickupMethod, setPickupMethod] = useState<PickupMethod>();
+    const [pickupName, setPickupName] = useState('');
+    const [pickupPhone, setPickupPhone] = useState('');
 
     const deliveryAddressRef = useRef<AddressRequestBody | undefined>();
 
@@ -327,10 +329,45 @@ const PickupFulfillment: React.FC<PickupFulfillmentProps> = ({
                             address={pickupAddress}
                         />
                     )}
-                    <div className="form-actions">
+                    <div className="form-field">
+    <label className="form-label" htmlFor="pickup-name">
+        Pickup Name
+    </label>
+
+    <input
+        className="form-input"
+        id="pickup-name"
+        onChange={(event) => setPickupName(event.target.value)}
+        required
+        type="text"
+        value={pickupName}
+    />
+</div>
+
+<div className="form-field">
+    <label className="form-label" htmlFor="pickup-phone">
+        Pickup Phone
+    </label>
+
+    <input
+        className="form-input"
+        id="pickup-phone"
+        onChange={(event) => setPickupPhone(event.target.value)}
+        type="tel"
+        value={pickupPhone}
+    />
+</div>
+
+<div className="form-actions">
     <button
         className="button button--primary"
-        onClick={onPickupContinue}
+        disabled={!pickupName.trim()}
+        onClick={() =>
+            onPickupContinue(
+                pickupName.trim(),
+                pickupPhone.trim(),
+            )
+        }
         type="button"
     >
         Continue

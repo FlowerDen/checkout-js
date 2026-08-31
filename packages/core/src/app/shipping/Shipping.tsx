@@ -274,8 +274,29 @@ function Shipping({
                         setIsMultishippingMode={setIsMultishippingMode}
                     />
                 ) : (
-                    <PickupFulfillment
-    onPickupContinue={() => navigateNextStep(false)}
+        <PickupFulfillment
+           onPickupContinue={async (pickupName, pickupPhone) => {
+             const pickupDetails = [
+               `PICKUP NAME: ${pickupName}`,
+             pickupPhone ? `PICKUP PHONE: ${pickupPhone}` : '',
+              ]
+                .filter(Boolean)
+                .join('\n');
+
+        try {
+            await updateCheckout({
+                customerMessage: customerMessage
+                    ? `${customerMessage}\n\n${pickupDetails}`
+                    : pickupDetails,
+            });
+
+            navigateNextStep(false);
+        } catch (error) {
+            if (error instanceof Error) {
+                onUnhandledError(error);
+            }
+        }
+    }}
     onUnhandledError={onUnhandledError}
 >
                         <ShippingForm
