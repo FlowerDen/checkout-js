@@ -48,7 +48,7 @@ const parseSearchArea = (latitude: string, longitude: string, radius: string, un
     return parsed as SearchAreaInput;
 };
 
-const parseRequestBody = (body: BodyInit | null | undefined): unknown => {
+const parseRequestBody = (body: unknown): unknown => {
     if (typeof body !== 'string') {
         return body;
     }
@@ -60,7 +60,7 @@ const parseRequestBody = (body: BodyInit | null | undefined): unknown => {
     }
 };
 
-const captureStorefrontRequests = (capturedRequests: CapturedRequest[]): (() => void) => {
+const captureFetchRequests = (capturedRequests: CapturedRequest[]): (() => void) => {
     const originalFetch = window.fetch.bind(window);
 
     window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -82,6 +82,60 @@ const captureStorefrontRequests = (capturedRequests: CapturedRequest[]): (() => 
 
     return () => {
         window.fetch = originalFetch;
+    };
+};
+
+const captureStorefrontRequests = (capturedRequests: CapturedRequest[]): (() => void) => {
+    const restoreFetch = captureFetchRequests(capturedRequests);
+    const OriginalXMLHttpRequest = window.XMLHttpRequest;
+
+    class CapturingXMLHttpRequest extends OriginalXMLHttpRequest {
+        private requestMethod = '';
+        private requestUrl = '';
+
+        open(method: string, url: string | URL): void;
+        open(
+            method: string,
+            url: string | URL,
+            async: boolean,
+            user?: string | null,
+            password?: string | null,
+        ): void;
+        open(
+            method: string,
+            url: string | URL,
+            async?: boolean,
+            user?: string | null,
+            password?: string | null,
+        ): void {
+            this.requestMethod = method;
+            this.requestUrl = url.toString();
+
+            if (async === undefined) {
+                super.open(method, url);
+            } else {
+                super.open(method, url, async, user, password);
+            }
+        }
+
+        send(body?: Document | XMLHttpRequestBodyInit | null): void {
+            if (this.requestUrl.includes('/api/storefront/')) {
+                capturedRequests.push({
+                    body: parseRequestBody(body),
+                    method: this.requestMethod,
+                    url: new URL(this.requestUrl, window.location.href).toString(),
+                });
+            }
+
+            super.send(body);
+        }
+    }
+
+    window.XMLHttpRequest = CapturingXMLHttpRequest;
+
+    return () => {
+        restoreFetch();
+        window.XMLHttpRequest = OriginalXMLHttpRequest;
     };
 };
 
