@@ -77,15 +77,33 @@ const captureFetchRequests = (capturedRequests: CapturedRequest[]): (() => void)
     window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
         const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
 
-        if (url.includes('/api/storefront/')) {
+        const isStorefrontRequest = url.includes('/api/storefront/');
+
+        if (isStorefrontRequest) {
             const request = input instanceof Request ? input : undefined;
             const body = init?.body ?? request?.body;
 
-            capturedRequests.push({
+            const capturedRequest: CapturedRequest = {
                 body: parseRequestBody(body),
                 method: init?.method ?? request?.method ?? 'GET',
                 url,
-            });
+            };
+
+            capturedRequests.push(capturedRequest);
+
+            const response = await originalFetch(input, init);
+
+            try {
+                const responseBody = await response.clone().text();
+
+                capturedRequest.responseBody = responseBody;
+                capturedRequest.responseJson = parseRequestBody(responseBody);
+                capturedRequest.status = response.status;
+            } catch {
+                capturedRequest.status = response.status;
+            }
+
+            return response;
         }
 
         return originalFetch(input, init);
