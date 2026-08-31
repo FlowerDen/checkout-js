@@ -21,6 +21,7 @@ interface PickupOptionState {
 
 export interface PickupFulfillmentProps {
     children: ReactNode;
+    onPickupContinue(): void;
     onUnhandledError(error: Error): void;
 }
 
@@ -31,6 +32,7 @@ const getPickupMethod = (pickupOptions: unknown): PickupMethod | undefined =>
 
 const PickupFulfillment: React.FC<PickupFulfillmentProps> = ({
     children,
+    onPickupContinue,
     onUnhandledError,
 }) => {
     const {
@@ -325,6 +327,15 @@ const PickupFulfillment: React.FC<PickupFulfillmentProps> = ({
                             address={pickupAddress}
                         />
                     )}
+                    <div className="form-actions">
+    <button
+        className="button button--primary"
+        onClick={onPickupContinue}
+        type="button"
+    >
+        Continue
+    </button>
+</div>
                 </section>
             ) : (
                 children

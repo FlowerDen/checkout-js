@@ -274,7 +274,10 @@ function Shipping({
                         setIsMultishippingMode={setIsMultishippingMode}
                     />
                 ) : (
-                    <PickupFulfillment onUnhandledError={onUnhandledError}>
+                    <PickupFulfillment
+    onPickupContinue={() => navigateNextStep(false)}
+    onUnhandledError={onUnhandledError}
+>
                         <ShippingForm
                             cartHasChanged={cartHasChanged}
                             isBillingSameAsShipping={isBillingSameAsShipping}
