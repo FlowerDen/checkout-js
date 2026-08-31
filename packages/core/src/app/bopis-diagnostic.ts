@@ -187,18 +187,18 @@ export const renderBopisDiagnostic = (diagnosticWindow: CustomCheckoutWindow): v
                     throw new Error('This checkout has no physical items that require shipping.');
                 }
 
-                const createRequest = [{ lineItems }];
+                const createRequest = [{ address: deliveryAddress, lineItems }];
                 const created = await checkoutService.createConsignments(createRequest);
                 const pickupConsignment = created.data.getConsignments()?.[0];
 
                 transitions.push({
-                    name: 'createConsignments_addressless',
+                    name: 'createConsignments_with_address',
                     request: createRequest,
                     consignments: created.data.getConsignments(),
                 });
 
                 if (!pickupConsignment) {
-                    throw new Error('No consignment was returned after addressless consignment creation.');
+                    throw new Error('No consignment was returned after address-backed consignment creation.');
                 }
 
                 const pickupQuery = {
