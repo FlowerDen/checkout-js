@@ -71,7 +71,7 @@ const getResponseBody = (xhr: XMLHttpRequest): string | undefined => {
     }
 };
 
-const captureFetchRequests = (capturedRequests: CapturedRequest[]): (() => void) => {
+const captureFetchRequests = (capturedRequests: CapturedRequest[], pendingResponseCaptures: Promise<void>[]): (() => void) => {
     const originalFetch = window.fetch.bind(window);
 
     window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -93,15 +93,19 @@ const captureFetchRequests = (capturedRequests: CapturedRequest[]): (() => void)
 
             const response = await originalFetch(input, init);
 
-            try {
-                const responseBody = await response.clone().text();
+            const responseCapture = response.clone().text().then(
+                (responseBody) => {
+                    capturedRequest.responseBody = responseBody;
+                    capturedRequest.responseJson = parseRequestBody(responseBody);
+                    capturedRequest.status = response.status;
+                },
+                () => {
+                    capturedRequest.status = response.status;
+                },
+            );
+            pendingResponseCaptures.push(responseCapture);
 
-                capturedRequest.responseBody = responseBody;
-                capturedRequest.responseJson = parseRequestBody(responseBody);
-                capturedRequest.status = response.status;
-            } catch {
-                capturedRequest.status = response.status;
-            }
+            await responseCapture;
 
             return response;
         }
@@ -114,8 +118,8 @@ const captureFetchRequests = (capturedRequests: CapturedRequest[]): (() => void)
     };
 };
 
-const captureStorefrontRequests = (capturedRequests: CapturedRequest[]): (() => void) => {
-    const restoreFetch = captureFetchRequests(capturedRequests);
+const captureStorefrontRequests = (capturedRequests: CapturedRequest[], pendingResponseCaptures: Promise<void>[]): (() => void) => {
+    const restoreFetch = captureFetchRequests(capturedRequests, pendingResponseCaptures);
     const OriginalXMLHttpRequest = window.XMLHttpRequest;
 
     class CapturingXMLHttpRequest extends OriginalXMLHttpRequest {
@@ -155,13 +159,17 @@ const captureStorefrontRequests = (capturedRequests: CapturedRequest[]): (() => 
                     url: new URL(this.requestUrl, window.location.href).toString(),
                 };
 
-                this.addEventListener('loadend', () => {
-                    const responseBody = getResponseBody(this);
+                const responseCapture = new Promise<void>((resolve) => {
+                    this.addEventListener('loadend', () => {
+                        const responseBody = getResponseBody(this);
 
-                    capturedRequest.responseBody = responseBody;
-                    capturedRequest.responseJson = parseRequestBody(responseBody);
-                    capturedRequest.status = this.status;
+                        capturedRequest.responseBody = responseBody;
+                        capturedRequest.responseJson = parseRequestBody(responseBody);
+                        capturedRequest.status = this.status;
+                        resolve();
+                    }, { once: true });
                 });
+                pendingResponseCaptures.push(responseCapture);
                 capturedRequests.push(capturedRequest);
             }
 
@@ -246,8 +254,9 @@ export const renderBopisDiagnostic = (diagnosticWindow: CustomCheckoutWindow): v
     runButton.addEventListener('click', () => {
         void (async () => {
             const capturedRequests: CapturedRequest[] = [];
+            const pendingResponseCaptures: Promise<void>[] = [];
             const transitions: Array<{ name: string; request?: unknown; consignments?: unknown; selectedPickupOption?: unknown }> = [];
-            const restoreFetch = captureStorefrontRequests(capturedRequests);
+            const restoreFetch = captureStorefrontRequests(capturedRequests, pendingResponseCaptures);
 
             try {
                 if (confirmation.value !== LIVE_CONFIRMATION) {
@@ -349,8 +358,12 @@ export const renderBopisDiagnostic = (diagnosticWindow: CustomCheckoutWindow): v
                     consignments: restored.data.getConsignments(),
                 });
 
+                await Promise.all(pendingResponseCaptures);
+
                 output.textContent = JSON.stringify({ capturedRequests, result: 'success', transitions }, null, 2);
             } catch (error) {
+                await Promise.all(pendingResponseCaptures);
+
                 output.textContent = JSON.stringify(
                     { capturedRequests, error: serializeError(error), result: 'failed', transitions },
                     null,
