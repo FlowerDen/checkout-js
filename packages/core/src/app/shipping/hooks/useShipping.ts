@@ -1,3 +1,4 @@
+
 import { type AddressRequestBody } from '@bigcommerce/checkout-sdk';
 import { useCallback } from 'react';
 import { createSelector } from 'reselect';
@@ -287,7 +288,6 @@ export const useShipping = () => {
         shouldShowMultiShipping,
         shouldShowOrderComments: enableOrderComments,
         shippingQuoteFailedMessage,
-        storePhoneNumber: config.storeProfile.storePhoneNumber,
         selectConsignmentShippingOption: checkoutService.selectConsignmentShippingOption,
         signOut: checkoutService.signOutCustomer,
         unassignItem: checkoutService.unassignItemsToAddress,

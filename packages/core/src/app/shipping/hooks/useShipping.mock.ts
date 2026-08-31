@@ -37,7 +37,6 @@ export const getUseShippingTestMock: () => ReturnType<typeof useShipping> = () =
     selectConsignmentShippingOption: jest.fn(),
     shippingAddress: getShippingAddress(),
     shippingQuoteFailedMessage: '',
-    storePhoneNumber: '987654321',
     shouldRenderStripeForm: false,
     shouldShowMultiShipping: false,
     shouldShowOrderComments: true,
