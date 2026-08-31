@@ -18,6 +18,7 @@ import type CheckoutStepStatus from '../checkout/CheckoutStepStatus';
 
 import { useShipping } from './hooks/useShipping';
 import { type MultiShippingFormValues } from './MultiShippingForm';
+import PickupFulfillment from './PickupFulfillment';
 import ShippingForm from './ShippingForm';
 import ShippingHeader from './ShippingHeader';
 import { type SingleShippingFormValues } from './SingleShippingForm';
@@ -259,18 +260,35 @@ function Shipping({
                     onMultiShippingChange={handleMultiShippingModeSwitch}
                     shouldShowMultiShipping={shouldShowMultiShipping}
                 />
-                <ShippingForm
-                    cartHasChanged={cartHasChanged}
-                    isBillingSameAsShipping={isBillingSameAsShipping}
-                    isInitialValueLoaded={!isInitializing}
-                    isMultiShippingMode={isMultiShippingMode}
-                    onCreateAccount={onCreateAccount}
-                    onMultiShippingSubmit={handleMultiShippingSubmit}
-                    onSignIn={onSignIn}
-                    onSingleShippingSubmit={handleSingleShippingSubmit}
-                    onUnhandledError={onUnhandledError}
-                    setIsMultishippingMode={setIsMultishippingMode}
-                />
+                {isMultiShippingMode ? (
+                    <ShippingForm
+                        cartHasChanged={cartHasChanged}
+                        isBillingSameAsShipping={isBillingSameAsShipping}
+                        isInitialValueLoaded={!isInitializing}
+                        isMultiShippingMode={isMultiShippingMode}
+                        onCreateAccount={onCreateAccount}
+                        onMultiShippingSubmit={handleMultiShippingSubmit}
+                        onSignIn={onSignIn}
+                        onSingleShippingSubmit={handleSingleShippingSubmit}
+                        onUnhandledError={onUnhandledError}
+                        setIsMultishippingMode={setIsMultishippingMode}
+                    />
+                ) : (
+                    <PickupFulfillment onUnhandledError={onUnhandledError}>
+                        <ShippingForm
+                            cartHasChanged={cartHasChanged}
+                            isBillingSameAsShipping={isBillingSameAsShipping}
+                            isInitialValueLoaded={!isInitializing}
+                            isMultiShippingMode={isMultiShippingMode}
+                            onCreateAccount={onCreateAccount}
+                            onMultiShippingSubmit={handleMultiShippingSubmit}
+                            onSignIn={onSignIn}
+                            onSingleShippingSubmit={handleSingleShippingSubmit}
+                            onUnhandledError={onUnhandledError}
+                            setIsMultishippingMode={setIsMultishippingMode}
+                        />
+                    </PickupFulfillment>
+                )}
             </div>
         </AddressFormSkeleton>
     );

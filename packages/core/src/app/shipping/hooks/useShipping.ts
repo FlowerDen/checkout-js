@@ -207,6 +207,27 @@ export const useShipping = () => {
         },
         [checkoutService, encodeConsignmentReq],
     );
+    const createConsignments = useCallback(
+        (...args: Parameters<typeof checkoutService.createConsignments>) => {
+            const [requests, ...rest] = args;
+
+            return checkoutService.createConsignments(
+                requests.map((request) => encodeConsignmentReq(request)),
+                ...rest,
+            );
+        },
+        [checkoutService, encodeConsignmentReq],
+    );
+    const deleteConsignment = useCallback(
+        (...args: Parameters<typeof checkoutService.deleteConsignment>) =>
+            checkoutService.deleteConsignment(...args),
+        [checkoutService],
+    );
+    const loadPickupOptions = useCallback(
+        (...args: Parameters<typeof checkoutService.loadPickupOptions>) =>
+            checkoutService.loadPickupOptions(...args),
+        [checkoutService],
+    );
     const updateShippingAddress = useCallback(
         (...args: Parameters<typeof checkoutService.updateShippingAddress>) => {
             const [address, ...rest] = args;
@@ -233,11 +254,13 @@ export const useShipping = () => {
         countries: getShippingCountries() || EMPTY_ARRAY,
         customer,
         customerMessage: checkout.customerMessage,
+        createConsignments,
         createCustomerAddress: checkoutService.createCustomerAddress,
         defaultShippingExpectationMessage: showDefaultShippingExpectationPrompt
             ? defaultShippingExpectationPrompt
             : undefined,
         deinitializeShippingMethod: checkoutService.deinitializeShipping,
+        deleteConsignment,
         deleteConsignments: deleteConsignmentsSelector({
             checkoutService,
             checkoutState,
@@ -256,6 +279,7 @@ export const useShipping = () => {
         isShippingStepPending: isShippingStepPending(),
         loadShippingAddressFields: checkoutService.loadShippingAddressFields,
         loadBillingAddressFields: checkoutService.loadBillingAddressFields,
+        loadPickupOptions,
         loadShippingOptions: checkoutService.loadShippingOptions,
         methodId,
         providerWithCustomCheckout,
@@ -263,6 +287,7 @@ export const useShipping = () => {
         shouldShowMultiShipping,
         shouldShowOrderComments: enableOrderComments,
         shippingQuoteFailedMessage,
+        storePhoneNumber: config.storeProfile.storePhoneNumber,
         selectConsignmentShippingOption: checkoutService.selectConsignmentShippingOption,
         signOut: checkoutService.signOutCustomer,
         unassignItem: checkoutService.unassignItemsToAddress,
