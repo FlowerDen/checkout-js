@@ -18,6 +18,14 @@ interface SearchAreaInput {
     unit: 'KM' | 'MI';
 }
 
+interface PickupOptionState {
+    pickupOptions?: Array<{
+        pickupMethod?: {
+            id: number;
+        };
+    }>;
+}
+
 const LIVE_CONFIRMATION = 'RUN LIVE BOPIS DIAGNOSTIC';
 
 const parseAddress = (value: string): AddressRequestBody => {
@@ -255,7 +263,7 @@ export const renderBopisDiagnostic = (diagnosticWindow: CustomCheckoutWindow): v
         void (async () => {
             const capturedRequests: CapturedRequest[] = [];
             const pendingResponseCaptures: Promise<void>[] = [];
-            const transitions: Array<{ name: string; request?: unknown; consignments?: unknown; selectedPickupOption?: unknown }> = [];
+            const transitions: Array<{ name: string; request?: unknown; consignments?: unknown; pickupMethod?: unknown; selectedPickupOption?: unknown }> = [];
             const restoreFetch = captureStorefrontRequests(capturedRequests, pendingResponseCaptures);
 
             try {
@@ -314,11 +322,14 @@ export const renderBopisDiagnostic = (diagnosticWindow: CustomCheckoutWindow): v
                     pickupQuery.consignmentId,
                     pickupQuery.searchArea,
                 );
-                const pickupMethod = pickupOptions?.flatMap(({ options }) => options)[0]?.pickupMethod;
+                const pickupMethod = (pickupOptions as unknown as PickupOptionState[] | undefined)
+                    ?.flatMap(({ pickupOptions: options = [] }) => options)[0]
+                    ?.pickupMethod;
 
                 transitions.push({
                     name: 'loadPickupOptions',
                     request: pickupQuery,
+                    pickupMethod,
                     consignments: pickupState.data.getConsignments(),
                 });
 
