@@ -167,7 +167,11 @@ export const renderBopisDiagnostic = (diagnosticWindow: CustomCheckoutWindow): v
                 const checkoutService = createCheckoutService();
                 const loaded = await checkoutService.loadCheckout(checkoutId);
                 const initialConsignments = loaded.data.getConsignments() ?? [];
-                const cart = loaded.data.getCartOrThrow();
+                const cart = loaded.data.getCart();
+
+                if (!cart) {
+                    throw new Error('The SDK returned no cart after loadCheckout.');
+                }
 
                 transitions.push({ name: 'loadCheckout', consignments: initialConsignments });
 
