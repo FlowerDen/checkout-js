@@ -1,6 +1,7 @@
 import type { BrowserOptions } from '@sentry/browser';
 
 import { loadFiles } from './loader';
+import { configurePublicPath } from './common/bundler';
 import { renderBopisDiagnostic } from './bopis-diagnostic';
 
 enum OrderPermalinkStatus {
@@ -33,6 +34,8 @@ function isCustomCheckoutWindow(window: Window): window is CustomCheckoutWindow 
     }
 
     if (new URLSearchParams(window.location.search).get('bopisDiagnostic') === '1') {
+
+        configurePublicPath(window.checkoutConfig.publicPath);
 
         renderBopisDiagnostic(window);
 
