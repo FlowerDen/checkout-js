@@ -1,6 +1,7 @@
 import type { BrowserOptions } from '@sentry/browser';
 
 import { loadFiles } from './loader';
+import { renderBopisDiagnostic } from './bopis-diagnostic';
 
 enum OrderPermalinkStatus {
     Valid = 'valid',
@@ -32,7 +33,6 @@ function isCustomCheckoutWindow(window: Window): window is CustomCheckoutWindow 
     }
 
     if (new URLSearchParams(window.location.search).get('bopisDiagnostic') === '1') {
-        const { renderBopisDiagnostic } = await import('./bopis-diagnostic');
 
         renderBopisDiagnostic(window);
 
