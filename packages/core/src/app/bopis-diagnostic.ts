@@ -339,6 +339,7 @@ export const renderBopisDiagnostic = (diagnosticWindow: CustomCheckoutWindow): v
 
                 const pickupSelection = {
                     id: pickupConsignment.id,
+                    lineItems,
                     pickupOption: { pickupMethodId: pickupMethod.id },
                 };
                 const selected = await checkoutService.updateConsignment(pickupSelection);
