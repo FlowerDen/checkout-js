@@ -1,14 +1,13 @@
-import { type AddressRequestBody } from '@bigcommerce/checkout-sdk';
+import { type AddressRequestBody, type SearchArea } from '@bigcommerce/checkout-sdk';
 
 type PickupProbeAddress = Omit<AddressRequestBody, 'phone'> & {
     country: string;
 };
 
 export const flowerDenPickupConfig: {
-    probeAddress: PickupProbeAddress;
-    searchArea: {
-        coordinates: { latitude: number; longitude: number };
-        radius: { unit: 'KM'; value: number };
+    searchArea: SearchArea;
+    probeAddress: AddressRequestBody & {
+        country: string;
     };
 } = {
     searchArea: {
@@ -17,7 +16,7 @@ export const flowerDenPickupConfig: {
             longitude: -77.1890343,
         },
         radius: {
-            unit: 'KM',
+            unit: 'KM' as SearchArea['radius']['unit'],
             value: 25,
         },
     },
@@ -25,12 +24,13 @@ export const flowerDenPickupConfig: {
         address1: '8196 Terminal Rd',
         address2: 'Unit C',
         city: 'Lorton',
-        company: '',
+        company: 'Flower Den Florist',
         country: 'United States',
         countryCode: 'US',
         customFields: [],
         firstName: 'Flower',
         lastName: 'Den',
+        phone: '7037509400',
         postalCode: '22079',
         stateOrProvince: 'Virginia',
         stateOrProvinceCode: 'VA',
