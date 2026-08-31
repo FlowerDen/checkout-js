@@ -31,6 +31,14 @@ function isCustomCheckoutWindow(window: Window): window is CustomCheckoutWindow 
         throw new Error('Checkout config is missing.');
     }
 
+    if (new URLSearchParams(window.location.search).get('bopisDiagnostic') === '1') {
+        const { renderBopisDiagnostic } = await import('./bopis-diagnostic');
+
+        renderBopisDiagnostic(window);
+
+        return;
+    }
+
     const { renderOrderConfirmation, renderCheckout } = await loadFiles({
         isConsistentCrossOriginFixEnabled: Boolean(
             window.checkoutConfig.isConsistentCrossOriginFixEnabled,
